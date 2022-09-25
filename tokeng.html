@@ -1,0 +1,73 @@
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/algosdk@1.13.0/dist/browser/algosdk.min.js"
+      integrity="sha384-3IaxTgktbWGiqPkr5oZQMM4H99ziYzoEUb6sznk03coGR2Cdf1r0I1GWPUL37iu8" crossorigin="anonymous"></script>
+    <script src="https://temptemp3.github.io/dist/all.js"
+      integrity="sha384-sOpwfoIDOqHhOe9+9CULn5hJ/bTRMXJyBxfgYeMwe45Mg5eLXqMqrKiH2yQkb/RM" crossorigin="anonymous"></script>
+<script>
+const tokens = [
+  0,
+  328073204,
+];
+const tokenGate = async(callback) => {
+  const address = getAddress()
+  const assets = await getAssets(address)
+  console.log({address, assets})
+  assets.some(el => tokens.includes(el)) ? callback() : () => {}
+}
+const connect = () => {
+  initAlgorandConnectionMyAlgo().then(() => window.location.reload())
+}
+const disconnect = () => {
+  localStorage.removeItem('addr')
+  window.location.reload()
+}
+const getAssets = async(address, ledger = 'MainNet') => {
+  let assets = []
+  try {
+  let res;
+  const balance = await fetch(`https://algoindexer.algoexplorerapi.io/v2/accounts/${address}`).then(async response => res = await response.json())
+  const { account: { assets: asas } } = res
+  assets = asas.reduce((acc,val) => val.amount > 0 ? [...acc, val["asset-id"]] : acc, [])
+  } catch(e) {}
+  return assets
+};
+const getAddress = () => localStorage.getItem('addr') || ''
+
+const initAlgorandConnectionMyAlgo = async() => {
+  if (!MyAlgoConnect) {
+    _alert({ message: 'Unable to initialize MyAlgo Connect' }, 'danger');
+    return;
+  }
+  // 1. get connected accounts
+  let addresses;
+  const address = localStorage.getItem('addr');
+  if (address) {
+    addresses = [{ address }];
+  } else {
+    const myAlgoConnect = new MyAlgoConnect();
+    const accountsSharedByUser = await myAlgoConnect.connect();
+    addresses = accountsSharedByUser.map((el) => ({ address: el.address }));
+    localStorage.setItem('addr', addresses[0].address);
+  }
+  console.log("connected");
+};
+
+
+$(document).ready(function(){
+  if(localStorage.getItem('addr')) {
+//initAlgorandConnectionMyAlgo();
+tokenGate(() => {
+  $('.token-gate').fadeIn('slow')
+})
+  }
+})
+</script>
+<style>
+  .token-gate { display:none; }
+</style>
+</head>
+<body>
+<button onClick="connect()">Connect</button>
+</body>
