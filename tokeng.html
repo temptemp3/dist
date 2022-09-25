@@ -9,6 +9,7 @@
 const tokens = [
   0,
   328073204,
+  524904247
 ];
 const tokenGate = async(callback) => {
   const address = getAddress()
@@ -70,4 +71,6 @@ tokenGate(() => {
 </head>
 <body>
 <button onClick="connect()">Connect</button>
+<div>regular content</div>
+<div class="token-gate">token gated content</div>
 </body>
